@@ -1,0 +1,16 @@
+{% extends "products/base.html" %}
+{% load static %}
+
+{% block content %}
+    <main>
+        <section class="hero">
+            <div class="container">
+                <h1 class="hero__title"><span class="text-gradient">Добро пожаловать в SuperShop</span></h1>
+                <p class="cart-item__muted" style="margin-top:.75rem">Рады видеть вас в магазине SuperShop</p>
+                <div style="margin-top:1.25rem">
+                    <a class="btn btn--primary" href="{% url 'products:index' %}"> Перейти в каталог </a>
+                </div>
+            </div>
+        </section>
+    </main>
+{% endblock %}

@@ -1,0 +1,128 @@
+{% extends "products/base.html" %}
+{% load static humanize %}
+
+
+{% block jsandmeta %}
+  <meta name="csrf-token" content="{{ csrf_token_value }}">
+  <script src="https://js.stripe.com/v3/"></script>
+  <script>
+    window.STRIPE_PK = "{{ public_key }}";
+    window.SUCCESS_URL = "{{ success_url }}";
+  </script>
+{% endblock %}
+
+{% block content %}
+  {% if cart_count == 0 %}
+    <main class="container hero">
+      <div>
+        <h1 class="hero__title"><span class="text-gradient">Корзина пуста</span></h1>
+        <a class="btn btn--primary" href="{% url 'products:index' %}">Вернуться в каталог</a>
+        </div>
+      </div>
+    </main>
+  {% else %}
+    <main class="container">
+      <section class="cart">
+        <div class="cart__layout">
+          <div>
+            {% if items %}
+              <h1 style="margin: 1rem 0">Подтверждение заказа</h1>
+              <ul class="cart-list">
+                {% for it in items %}
+                  <li class="cart-item">
+                    {% if it.image %}
+                      <div class="cart-item__media"><img src="{{ it.image }}" alt="{{ it.name }}"></div>
+                    {% endif %}
+                    <div class="cart-item__title">{{ it.name }}</div>
+                    <div>
+                      <div class="cart-item__muted">Цена</div>
+                      <div class="price">{{ it.price|floatformat:0|intcomma }} руб.</div>
+                    </div>
+                    <div>
+                      <div class="cart-item__muted">Кол-во</div>
+                      <div>{{ it.quantity }} </div>
+                    </div>
+                    <div>
+                      <div class="cart-item__muted">Сумма</div>
+                      <div class="price">{{ it.subtotal|floatformat:0|intcomma }} руб.</div>
+                    </div>
+                  </li>
+                {% endfor %}
+              </ul>
+            {% endif %}
+          </div>
+
+          <aside class="cart__aside">
+            <h2 style="font-size:1.1rem">Оплата</h2>
+
+            <div class="summary" style="margin-bottom:.5rem">
+              <div class="summary__row">
+                <span class="cart-item__muted">К оплате</span>
+                <strong>
+                  {{ cart_total }} ₽
+                </strong>
+              </div>
+            </div>
+
+            <form id="payment-form" style="display:grid;gap:1rem">
+              <div id="payment-element"></div>
+              <button id="submit" class="btn btn--primary">Оплатить</button>
+              <div id="payment-message" class="cart-item__muted" style="color:#b91c1c"></div>
+            </form>
+          </aside>
+        </div>
+      </section>
+    </main>
+  {% endif %}
+
+  <script>
+    const stripe = Stripe(window.STRIPE_PK);
+    let elements;
+
+    function getCookie(name){
+      const m = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+      return m ? m.pop() : '';
+    }
+
+    init();
+
+    async function init(){
+      const csrftoken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+      const res = await fetch("{% url 'orders:create_payment_intent' %}", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "X-CSRFToken": csrftoken
+        },
+        body: JSON.stringify({})
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        document.getElementById('payment-message').textContent = data.error || 'Ошибка инициализации платежа';
+        return;
+      }
+      elements = stripe.elements({ clientSecret: data.clientSecret });
+
+      const paymentElement = elements.create("payment", { layout: "accordion" });
+      paymentElement.mount("#payment-element");
+    }
+
+    document.getElementById('payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      document.getElementById('submit').disabled = true;
+      document.getElementById('payment-message').textContent = '';
+
+      const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+          return_url: window.SUCCESS_URL
+        }
+      });
+
+      if (error) {
+        document.getElementById('payment-message').textContent = error.message || 'Ошибка оплаты';
+        document.getElementById('submit').disabled = false;
+      }
+    });
+  </script>
+{% endblock %}

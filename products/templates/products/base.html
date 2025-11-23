@@ -1,0 +1,54 @@
+{% load static %}
+
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  {% block jsandmeta %}
+  {% endblock %}
+  <title>{{ title }}</title>
+  <link rel="stylesheet" href="{% static 'vendor/css/styles.css' %}">
+</head>
+<body>
+  <header class="header">
+    <div class="container header__inner">
+      <a class="logo" href="{% url 'index' %}">
+        <span class="logo__mark" aria-hidden="true"></span>
+        <span>SuperShop</span>
+      </a>
+      <nav class="nav" aria-label="Навигация">
+        <a href="{% url 'products:index' %}">Каталог</a>
+      </nav>
+      <div class="header__actions">
+        <a class="cart-link" href="{% url 'products:cart_detail' %}">
+          <span>Корзина</span>
+          <span class="cart-link__badge">{{ cart_count|default:0 }}</span>
+        </a>
+        {% if request.user.is_authenticated %}
+          <details class="user-menu">
+            <summary class="header__avatar-btn" aria-label="Открыть меню пользователя">
+              <span class="avatar">
+                <img src="{% if user.profile and user.profile.avatar %}{{ user.profile.avatar.url }}{% else %}{% static 'vendor/images/profile_image.jpg' %}{% endif %}" alt="{{ user.username }}">
+              </span>
+            </summary>
+            <div class="user-menu__list" role="menu">
+              <a class="user-menu__link" href="#" role="menuitem">Профиль</a>
+              <a class="user-menu__link" href="#" role="menuitem">Заказы</a>
+              <form action="{% url 'users:logout' %}" method="post">
+                {% csrf_token %}
+                <button class="user-menu__link user-menu__link--danger" type="submit" role="menuitem">Выход</button>
+              </form>
+            </div>
+          </details>
+        {% else %}
+          <a class="btn btn-login" href="{% url 'users:login' %}">Войти</a>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  {% block content %}
+  {% endblock %}
+</body>
+</html>

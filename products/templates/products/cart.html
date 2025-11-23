@@ -1,0 +1,86 @@
+{% extends 'products/base.html' %}
+{% load static %}
+{% load humanize %}
+
+{% block content %}
+    {% if not cart_count or cart_count == 0 %}
+        <main class="container hero">
+            <div>
+            <h1 class="hero__title"><span class="text-gradient">Корзина пуста</span></h1>
+            <a class="btn btn--primary" href="{% url 'products:index' %}">Вернуться в каталог</a>
+            </div>
+            </div>
+        </main>
+    {% else %}
+        <main class="container">
+        <h1 style="margin: 1rem 0">Корзина</h1>
+
+        <section class="cart">
+            <div class="cart__layout">
+            <div>
+                <ul class="cart-list" aria-label="Список товаров в корзине">
+                {% for item in items %}
+                    <li class="cart-item">
+                        
+                        <div class="cart-item__media">
+                        <img class="img-cover" src="{% if item.item.image %} {{ item.item.image.url }} {% else %} {% static 'vendor/images/item_image.jpg' %} {% endif %}" alt="{{ item.name }}">
+                        </div>
+                        <div>
+                        <div class="cart-item__title">{{ item.item }}</div>
+                        </div>
+                        <div>
+                        <div class="cart-item__muted">Цена</div>
+                        <div class="price">{{ item.unit_price }} ₽</div>
+                        </div>
+                        <div class="qty">
+                        <label class="cart-item__muted">Кол-во</label>
+                        <label>{{ item.quantity }}</label>
+                        </div>
+                        <div>
+                        <div class="cart-item__muted">Сумма</div>
+                        <div class="price">{{ item.line_total }} ₽</div>
+                        </div>
+                        <div>
+                            <form action="{% url 'products:cart_remove' %}" method="post">
+                                {% csrf_token %}
+                                <input type="hidden" name="product_id" value="{{ item.item.id }}">
+                                <button class="btn btn--danger" type="submit" aria-label="Удалить {{ item.item }}">×</a>
+                            </form>
+                        </div>
+                    </li>            
+                {% endfor %}
+                </ul>
+            </div>
+
+            <aside class="cart__aside" aria-label="Сводка по заказу">
+                <h2 style="font-size:1.1rem">Итого</h2>
+
+                <div class="summary">
+                <div class="summary__row">
+                    <span class="cart-item__muted">Товары ({{ cart_count }})</span>
+                    <span class="cart-item__muted">{{ cart.subtotal|floatformat:2 }} ₽</span>
+                </div>
+                <div class="summary__row">
+                    <span class="cart-item__muted">Доставка</span>
+                    <span class="cart-item__muted">Бесплатно</span>
+                </div>
+                <hr class="hr">
+                <div class="summary__row">
+                    <strong>К оплате</strong>
+                    <strong>{{ cart.subtotal|floatformat:2 }} ₽</strong>
+                </div>
+                </div>
+
+                <form class="promo" action="#" method="get">
+                <input class="input" type="text" placeholder="Промокод" aria-label="Промокод">
+                <button class="btn btn--outline" type="submit">Применить</button>
+                </form>
+
+                <a class="btn btn--primary btn--block" href="{% url 'orders:checkout' %}">Оформить заказ</a>
+                <a class="btn btn--outline btn--block" href="catalog.html">Продолжить покупки</a>
+            </aside>
+            </div>
+        </section>
+        </main>
+    {% endif %}
+{% endblock %}

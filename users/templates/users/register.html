@@ -1,0 +1,33 @@
+{% extends "products/base.html" %}
+
+{% block content %}
+  <main class="container auth">
+    <section class="auth-card">
+      <h1 class="product__title">Регистрация</h1>
+      {% if form.errors %}
+        <p class="hint" role="alert">{{ form.errors }}</p>
+      {% endif %}
+      <form action="{% url 'users:registration' %}" method="post" class="form">
+        {% csrf_token %}
+        <label for="{{ form.first_name.id_for_label }}">Имя</label>
+        {{ form.first_name}}
+        <label for="{{ form.username.id_for_label }}">Логин</label>
+        {{ form.username }}
+        <label for="{{ form.email.id_for_label }}">Email</label>
+        {{ form.email }}
+        <label for="{{ form.passowrd1.id_for_label }}">Подтвердите пароль</label>
+        {{ form.password1 }}
+        <label for="{{ form.password2.id_for_label }}">Пароль</label>
+        {{ form.password2 }}
+        <label style="display:flex;align-items:flex-start;gap:.5rem">
+          <input type="checkbox" name="consent" required>
+          <span class="hint">Согласен(на) с условиями и обработкой персональных данных</span>
+        </label>
+        <button class="btn btn--primary" type="submit">Зарегистрироваться</button>
+        <div style="text-align:center">
+          <a class="hint" href="{% url 'users:login' %}">У меня уже есть аккаунт</a>
+        </div>
+      </form>
+    </section>
+  </main>
+{% endblock %}

@@ -1,0 +1,60 @@
+{% extends "products/base.html" %}
+{% load static %}
+
+{% block jsandmeta %}
+  <script src="https://js.stripe.com/v3/"></script>
+{% endblock %}
+
+{% block content %}
+  <main class="container hero">
+    <div>
+      <h1 class="hero__title"><span id="status" class="text-gradient">Проверяем оплату…</span></h1>
+      <p id="desc" class="cart-item__muted" style="margin-top:.75rem"></p>
+      <div style="margin-top:1.25rem">
+        <a class="btn btn--primary" href="{% url 'products:index' %}">Вернуться в каталог</a>
+      </div>
+    </div>
+  </main>
+
+
+  <script>
+    const stripe = Stripe("{{ public_key }}");
+
+    function getParam(name){
+      const url = new URL(window.location.href);
+      return url.searchParams.get(name);
+    }
+
+    async function checkStatus(){
+      const clientSecret = getParam('payment_intent_client_secret');
+      if (!clientSecret) {
+        document.getElementById('status').textContent = 'Параметр не найден';
+        document.getElementById('desc').textContent = 'Вернитесь и попробуйте снова.';
+        return;
+      }
+      const { paymentIntent } = await stripe.retrievePaymentIntent(clientSecret);
+
+      let title = '', desc = '';
+      switch (paymentIntent.status) {
+        case 'succeeded':
+          title = 'Оплата прошла успешно';
+          desc = 'Спасибо за покупку!';
+          break;
+        case 'processing':
+          title = 'Платёж обрабатывается';
+          desc = 'Мы уведомим вас после подтверждения.';
+          break;
+        case 'requires_payment_method':
+          title = 'Платёж не выполнен';
+          desc = 'Попробуйте другой способ оплаты.';
+          break;
+        default:
+          title = 'Статус: ' + paymentIntent.status;
+          desc = 'Проверьте детали оплаты.';
+      }
+      document.getElementById('status').textContent = title;
+      document.getElementById('desc').textContent = desc;
+    }
+    checkStatus();
+  </script>
+{% endblock%}

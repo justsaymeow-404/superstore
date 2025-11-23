@@ -1,0 +1,45 @@
+{% extends "products/base.html" %}
+{% load static %}
+
+{% block content %}
+  <main class="container">
+    <h1 style="margin: 1rem 0 .25rem">Каталог</h1>
+    <p class="cart-item__muted" style="margin-bottom: 1rem;">Всего товаров: {{ object_list | length }}</p>
+
+    <ul class="product-grid">
+      
+        {% for item in object_list %}
+            <li>
+                <article class="product-card">
+                <a class="product__media" href="{% url 'products:item_detail' item.pk %}" aria-label="{{ item.name }}">
+                    <img class="img-cover" src="{% if item.image %} {{ item.image.url }} {% else %} {% static 'vendor/images/item_image.jpg' %} {% endif %}" alt="{{ item.name }}">
+                </a>
+                <div class="product-card__body">
+                    <a class="product-card__title" href="#">{{ item.name }}</a>
+                    <div class="product-card__meta">
+                    <span class="badge" title="Рейтинг">★ {{ item.rating }}</span>
+                    <span class="price">{{ item.price }} ₽</span>
+                    </div>
+                    <div class="product-card__actions">
+                    <form method="post" action="{% url 'products:cart_add' %}">
+                      {% csrf_token %}
+                        <input type="hidden" name="product_id" value={{ item.id }}>
+                        <button class="btn btn--primary btn--block" type="submit">В корзину</button>
+                    </form>
+                    </div>
+                </div>
+                </article>
+            </li>
+        {% endfor %}
+
+    </ul>
+
+    <nav class="pagination" aria-label="Постраничная навигация">
+      <a class="page" href="#" aria-label="Предыдущая страница">‹</a>
+      <a class="page" href="#" aria-current="page">1</a>
+      <a class="page" href="#">2</a>
+      <a class="page" href="#">3</a>
+      <a class="page" href="#" aria-label="Следующая страница">›</a>
+    </nav>
+  </main>
+{% endblock %}
