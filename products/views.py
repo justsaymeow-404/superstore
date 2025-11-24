@@ -8,35 +8,29 @@ from django.views.generic import DetailView
 from django.views.generic.base import TemplateView
 from django.views.generic.list import ListView
 
+from common.views import TitleMixin
 from .models import Cart, Item
 
 stripe.api_key = settings.STRIPE_SECRET_KEY
 
 
 
-class IndexView(TemplateView):
+class IndexView(TitleMixin, TemplateView):
     template_name = 'products/index.html'
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['title'] = 'SuperShop'
-        return context
+    title = 'SuperShop'
 
 
-class ItemDetailView(DetailView):
+class ItemDetailView(TitleMixin, DetailView):
     model = Item
     template_name = 'products/item_detail.html'
+    title = 'Страница товара'
     context_object_name = 'item'
 
 
-class CatalogListView(ListView):
+class CatalogListView(TitleMixin, ListView):
     model = Item
     template_name = 'products/catalog.html'
-
-    def get_context_data(self, *args, **kwargs):
-        context = super().get_context_data(*args, **kwargs)
-        context['title'] = 'SuperShop'
-        return context
+    title = 'Каталог'
 
 
 
@@ -58,11 +52,12 @@ def cart_remove(request):
     return HttpResponseRedirect(request.META['HTTP_REFERER'])
 
 
+@login_required
 def cart_detail(request):
     cart = Cart.objects.filter(user=request.user, status=Cart.STATUS_OPEN)
     if cart.exists():
-        return render(request, 'products/cart.html', {'items': cart.first().items_qs})
-    return render(request, 'products/cart.html')
+        return render(request, 'products/cart.html', {'items': cart.first().items_qs, 'title': 'Корзина'})
+    return render(request, 'products/cart.html', {'title': 'Корзина'})
 
 
 

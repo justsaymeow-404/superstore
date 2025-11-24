@@ -30,6 +30,7 @@ def checkout_page(request):
             'image': getattr(cart_item.item, 'image', None) and cart_item.item.image.url or '' 
         })
     return render(request, 'orders/checkout.html', {
+        'title': 'Страница оплаты',
         'public_key': settings.STRIPE_PUBLIC_KEY,
         'csrf_token_value': csrf,
         'success_url': request.build_absolute_uri(reverse('orders:payment_success')),
@@ -61,5 +62,6 @@ def payment_success(request):
     cart = Cart.objects.filter(user=request.user, status=Cart.STATUS_OPEN).first()
     Order.create_from_cart(cart)
     return render(request, 'orders/success.html', {
+        'title': 'Спасибо за покупку',
         'public_key': settings.STRIPE_PUBLIC_KEY
     })
